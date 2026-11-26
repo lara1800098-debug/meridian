@@ -22,7 +22,8 @@
     "reclassify": "tsx --conditions=react-server scripts/reclassify.ts",
     "reresolve": "tsx --conditions=react-server scripts/reresolve.ts",
     "export:radar": "tsx --conditions=react-server scripts/export-radar.ts",
-    "refresh:radar": "npm run ingest:once && npm run reclassify && npm run reresolve && npm run export:radar"
+    "refresh:radar": "npm run ingest:once && npm run reclassify && npm run reresolve && npm run enrich:people && npm run export:radar",
+    "enrich:people": "tsx --conditions=react-server scripts/enrich-people.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.14.0",

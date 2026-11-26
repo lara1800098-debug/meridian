@@ -202,6 +202,9 @@ const SOURCES = [
   ['rss', 'Abu Dhabi Media Office — الصحة', 'https://www.mediaoffice.abudhabi/ar/health/rss', 'ar', 'government', 5, true, true, false, 'Official government feed (ADMO RSS page). Verified 2026-11-26: 24 items, robots.txt permits.'],
   ['rss', 'Gulf Today', 'https://www.gulftoday.ae/rssFeed/0', 'en', 'business_news', 3, false, true, false, 'Verified 2026-11-26: 50 items, robots.txt permits. Headline+excerpt only.'],
   ['sitemap', 'Emirates 24|7 — news sitemap', 'https://www.emirates247.com/newsSitemap.xml', 'en', 'business_news', 3, false, true, false, 'Google-News-style sitemap (headlines only). Verified 2026-11-26: 69 items, robots.txt permits.'],
+  ['rss', 'Daily News Egypt', 'https://www.dailynewsegypt.com/feed/', 'en', 'business_news', 3, false, true, false, 'Egypt coverage. Verified 2026-11-26: robots.txt permits. Headline+excerpt only.'],
+  ['rss', 'Egypt Independent', 'https://www.egyptindependent.com/feed/', 'en', 'business_news', 3, false, true, false, 'Egypt coverage. Verified 2026-11-26: robots.txt permits. Headline+excerpt only.'],
+  ['rss', 'Jordan News', 'https://www.jordannews.jo/rss', 'en', 'business_news', 3, false, true, false, 'Jordan coverage. Verified 2026-11-26: robots.txt permits. (Jordan Times disallows automated reading.)'],
   // Official — feed endpoints found but returned no items from this probe; verify from UAE VM.
   ['rss', 'WAM — Emirates News Agency (EN)', 'https://www.wam.ae/en/rss', 'en', 'government', 5, true, false, false, 'Endpoint returned 200 but no <item> elements in probe. Verify feed URL & terms, then enable.'],
   ['rss', 'Dubai Media Office (EN)', 'https://www.mediaoffice.ae/en/rss', 'en', 'government', 5, true, false, false, 'Endpoint returned 200 but no items in probe. Verify.'],

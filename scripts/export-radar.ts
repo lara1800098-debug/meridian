@@ -19,13 +19,15 @@ const plays = await sql`
   SELECT p.id, p.headline, p.headline_ar, s.title, s.lang, s.signal_type AS type, s.track, s.country, s.sector, o.name_en AS org, o.name_ar AS org_ar,
     p.total, p.tier, p.confidence, p.scores, p.why_now AS why, p.risks, p.buyer_roles AS buyers, p.offer_keys AS offers, p.proof_point, p.value_low_usd, p.value_high_usd, p.size_band AS band, p.outreach,
     (SELECT json_agg(json_build_object('id', left(sn.id::text, 8), 'title', sn.title, 'excerpt', left(sn.excerpt, 500), 'url', sn.url, 'outlet', coalesce(src.name, ''), 'date', coalesce(sn.published_at, sn.fetched_at), 'lang', sn.lang) ORDER BY sn.published_at)
-       FROM signal_sources ss JOIN snapshots sn ON sn.id = ss.snapshot_id LEFT JOIN sources src ON src.id = sn.source_id WHERE ss.signal_id = s.id) AS sources
+       FROM signal_sources ss JOIN snapshots sn ON sn.id = ss.snapshot_id LEFT JOIN sources src ON src.id = sn.source_id WHERE ss.signal_id = s.id) AS sources,
+    (SELECT json_agg(json_build_object('name', pe.name, 'title', pe.title, 'url', pe.source_url) ORDER BY pe.seen_at DESC) FROM people pe WHERE pe.org_id = p.org_id AND NOT pe.is_demo) AS people,
+    s.published_at, s.first_seen_at
   FROM plays p JOIN signals s ON s.id = p.signal_id LEFT JOIN organisations o ON o.id = p.org_id
   WHERE NOT s.is_demo AND coalesce(s.published_at, s.first_seen_at) > now() - interval '60 days' ORDER BY p.total DESC`;
 const playsOut = plays.map((p) => ({
   id: short(p.id), headline: p.headline, headline_ar: p.headline_ar, title: p.title, lang: p.lang, type: p.type, track: p.track, country: p.country, sector: p.sector,
   org: p.org, org_ar: p.org_ar, total: p.total, tier: p.tier, confidence: p.confidence, scores: p.scores, why: p.why, risks: p.risks, buyers: p.buyers, offers: p.offers,
-  proof: p.proof_point ? JSON.parse(p.proof_point) : null, low: Math.round(Number(p.value_low_usd)), high: Math.round(Number(p.value_high_usd)), band: p.band, outreach: p.outreach, sources: p.sources ?? [],
+  proof: p.proof_point ? JSON.parse(p.proof_point) : null, low: Math.round(Number(p.value_low_usd)), high: Math.round(Number(p.value_high_usd)), band: p.band, outreach: p.outreach, sources: p.sources ?? [], people: (p.people ?? []).slice(0, 6), seen: p.published_at ?? p.first_seen_at,
 }));
 
 // ---- signals (buying signals) with their logo

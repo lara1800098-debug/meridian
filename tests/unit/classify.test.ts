@@ -193,3 +193,6 @@ describe('fixes from the first automatic run', () => {
     ['Nakheel awards Dh1.4bn contract to build 176 villas', 'Nakheel'],
   ])('%s', (t, want) => expect(headlineSubject(t)).toBe(want));
 });
+describe('Arabic places are not logos', () => {
+  it('rejects السعودية / دبي', () => { expect(headlineSubject('السعودية تطلق منصة جديدة للخدمات')).toBeNull(); expect(headlineSubject('دبي تستضيف القمة')).toBeNull(); });
+});
