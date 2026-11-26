@@ -3,7 +3,7 @@
  * snapshot → language → translation → dedup → classify/extract → org resolution → score → play.
  */
 import { sql } from '@/db';
-import { classify, isArabic, type Extraction } from '../engine/classify';
+import { classify, headlineSubject, isArabic, type Extraction } from '../engine/classify';
 import { contentHash, fingerprint, SAME_STORY } from '../engine/dedup';
 import { scoreSignal } from '../engine/score';
 import { buildPlay, type Offer, type RateCard } from '../engine/play';
@@ -74,7 +74,9 @@ export async function ingestItem(item: RawItem): Promise<{ status: 'duplicate_sn
     ORDER BY is_competitor ASC, length(name_en) DESC LIMIT 1`;
   if (!ex.relevant && method === 'rules') return { status: 'not_signal' }; // stored as evidence, but not a buying signal
   if (ex.country === 'XX' && item.sourceId) { const [src] = await sql`SELECT country FROM sources WHERE id = ${item.sourceId}`; if (src && known) ex.country = src.country; }
-  const orgId = known?.id ?? (ex.orgNames.length ? await resolveOrg(ex.orgNames[0], orgAr, ex) : null);
+  // Order: a known organisation named verbatim → the headline's subject (the "logo") → other extracted names.
+  const subject = headlineSubject(item.title);
+  const orgId = known?.id ?? (subject ? await resolveOrg(subject, orgAr, ex) : ex.orgNames.length ? await resolveOrg(ex.orgNames[0], orgAr, ex) : null);
   if (orgId) {
     // Known organisation profile beats text heuristics for sector / type / country.
     const [o] = await sql`SELECT sector, org_type, country FROM organisations WHERE id = ${orgId}`;
@@ -97,7 +99,7 @@ export async function ingestItem(item: RawItem): Promise<{ status: 'duplicate_sn
     INSERT INTO signals (title, title_en, summary, lang, signal_type, track, org_id, country, sector, amount_usd, deadline, published_at, fingerprint, classification_method, extracted, is_demo)
     VALUES (${item.title.slice(0, 500)}, ${null}, ${item.excerpt.slice(0, 600)}, ${lang}, ${ex.signalType}, ${track}, ${orgId}, ${ex.country}, ${ex.sector},
             ${ex.amountUsd}, ${ex.deadline}, ${publishedAt}, ${fp}, ${method},
-            ${sql.json({ orgNames: ex.orgNames, competitors: ex.competitors, amountText: ex.amountText, matched: ex.matched, roles: ex.roles, orgType: ex.orgType, ruleStrength: ex.ruleStrength } as any)}, ${item.isDemo ?? false})
+            ${sql.json({ orgNames: subject ? [subject, ...ex.orgNames] : ex.orgNames, international: ex.international, competitors: ex.competitors, amountText: ex.amountText, matched: ex.matched, roles: ex.roles, orgType: ex.orgType, ruleStrength: ex.ruleStrength } as any)}, ${item.isDemo ?? false})
     RETURNING id`;
   await sql`INSERT INTO signal_sources (signal_id, snapshot_id) VALUES (${sig.id}, ${snap.id})`;
   await sql`UPDATE signals s SET title_en = sn.title_translated FROM snapshots sn WHERE s.id = ${sig.id} AND sn.id = ${snap.id} AND sn.title_translated IS NOT NULL`;
@@ -113,7 +115,7 @@ export async function ingestItem(item: RawItem): Promise<{ status: 'duplicate_sn
   return { status: 'new', signalId: sig.id, playId };
 }
 
-async function resolveOrg(name: string, nameAr: string | null, ex: Extraction): Promise<string> {
+export async function resolveOrg(name: string, nameAr: string | null, ex: Extraction): Promise<string> {
   const clean = name.replace(/\s+/g, ' ').trim();
   const [m] = await sql`
     SELECT id FROM organisations

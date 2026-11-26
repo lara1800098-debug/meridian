@@ -151,6 +151,52 @@ html[data-theme="light"] .scope h1{color:#fff}
 .reasons button:hover{border-color:var(--bad);color:var(--bad)}
 .empty{padding:40px 20px;text-align:center;color:var(--ink-3)}
 
+/* LOGOS */
+.logos-head{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between;margin-top:18px}
+.logos-head h1{font-size:clamp(24px,3vw,32px);letter-spacing:-.02em}
+.logos-head p{margin:4px 0 0;color:var(--ink-3)}
+.lbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.lbar input[type=search]{border:1px solid var(--line);border-radius:9px;padding:8px 12px;background:var(--panel);min-width:0;flex:1 1 200px;max-width:340px}
+.logos-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,380px);gap:20px;margin-top:16px;align-items:start}
+@media (max-width:1000px){.logos-layout{grid-template-columns:1fr}}
+.sector{margin-bottom:22px}
+.sector-h{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:10px}
+.sector-h h2{font-size:17px}
+.sector-h span{font-family:var(--f-mono);font-size:12px;color:var(--ink-3)}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
+.logo{padding:14px;display:flex;flex-direction:column;gap:10px}
+.logo.q{border-color:color-mix(in srgb,var(--brass) 45%,var(--line))}
+.logo-top{display:flex;gap:10px;align-items:flex-start}
+.mono{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-family:var(--f-display);font-weight:600;font-size:14px;color:#fff;flex:none}
+.logo-top b{display:block;font-size:14.5px;line-height:1.25}
+.logo-top small{color:var(--ink-3);font-size:12px}
+.checks{display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-2)}
+.checks span::before{content:"○ ";color:var(--ink-3)}
+.checks span.ok::before{content:"● ";color:var(--good)}
+.sell{display:flex;gap:5px;flex-wrap:wrap}
+.sell span{font-size:11.5px;border:1px solid var(--line);border-radius:6px;padding:1px 7px;background:var(--panel-2)}
+.upd{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+.upd li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px}
+.upd time{font-family:var(--f-mono);font-size:11px;color:var(--ink-3);white-space:nowrap;padding-top:1px}
+.upd a{color:var(--ink);text-decoration:none}
+.upd a:hover{text-decoration:underline}
+.upd .o{color:var(--ink-3);font-size:11px}
+.logo-act{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.logo-act .btn{padding:5px 10px;font-size:12.5px}
+.trends{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);padding:16px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 100px);overflow:auto}
+@media (max-width:1000px){.trends{position:static;max-height:none}}
+.trend{border-top:1px solid var(--line);padding-top:12px}
+.trend:first-of-type{border-top:0;padding-top:0}
+.trend h3{font-size:14.5px;display:flex;justify-content:space-between;gap:8px}
+.trend h3 span{font-family:var(--f-mono);font-weight:500;color:var(--brass)}
+.meter{height:5px;border-radius:5px;background:var(--panel-2);overflow:hidden;margin:6px 0}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--sea),var(--brass))}
+.trend .small{font-size:12px;color:var(--ink-3)}
+.trend ul{margin:6px 0 0;padding-inline-start:16px;font-size:12.5px}
+.trend .chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.trend .chips button{border:1px solid var(--line);background:none;border-radius:999px;padding:1px 8px;font-size:11.5px}
+.trend .chips button:hover{border-color:var(--sea);color:var(--sea)}
+
 /* PIPELINE */
 .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-top:18px}
 @media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -222,6 +268,7 @@ html[data-theme="light"] .scope h1{color:#fff}
       <div><b>Meridian</b><small data-i="tagline">MET Revenue Intelligence · UAE pilot</small></div>
     </div>
     <nav class="tabs" aria-label="Views">
+      <a href="#logos" data-view="logos" data-i="nav_logos">Logos</a>
       <a href="#radar" data-view="radar" data-i="nav_radar">Radar</a>
       <a href="#pipeline" data-view="pipeline" data-i="nav_pipeline">Pipeline</a>
       <a href="#brief" data-view="brief" data-i="nav_brief">Monday Brief</a>
@@ -271,10 +318,17 @@ const TYPES = {
 };
 const COUNTRY = { AE: ["UAE", "الإمارات"], SA: ["KSA", "السعودية"], EG: ["Egypt", "مصر"], JO: ["Jordan", "الأردن"], TR: ["Türkiye", "تركيا"], QA: ["Qatar", "قطر"], KW: ["Kuwait", "الكويت"], BH: ["Bahrain", "البحرين"], OM: ["Oman", "عُمان"] };
 const DISMISS = [["not_relevant", "Not relevant", "غير ذات صلة"], ["existing_client", "Existing client", "عميل حالي"], ["too_small", "Too small", "صغيرة جداً"], ["no_access", "No access", "لا وصول"], ["bad_source", "Weak source", "مصدر ضعيف"]];
+const SECTOR = { government: ["Government", "الحكومة"], bfsi: ["Banking & insurance", "البنوك والتأمين"], fintech: ["Fintech", "التقنية المالية"], telecom: ["Telecom", "الاتصالات"], healthcare: ["Healthcare", "الرعاية الصحية"], retail: ["Retail & e-commerce", "التجزئة"], travel: ["Travel & transport", "السفر والنقل"], utilities: ["Utilities", "المرافق"], real_estate: ["Real estate", "العقارات"], technology: ["Technology", "التكنولوجيا"], media: ["Media", "الإعلام"], education: ["Education", "التعليم"], logistics: ["Logistics", "اللوجستيات"], automotive: ["Automotive", "السيارات"], energy: ["Energy", "الطاقة"], other: ["Other", "أخرى"] };
+const SECTOR_HUE = { government: 200, bfsi: 160, fintech: 140, telecom: 260, healthcare: 350, retail: 30, travel: 190, utilities: 45, real_estate: 20, technology: 280, media: 310, education: 100, logistics: 220, automotive: 0, energy: 60, other: 210 };
 const LOSS = [["price", "Price", "السعر"], ["capability", "Capability", "القدرات"], ["relationship", "Relationship", "العلاقة"], ["timing", "Timing", "التوقيت"], ["incumbent", "Incumbent", "المزود الحالي"], ["insourced", "Insourced", "تشغيل داخلي"], ["cancelled", "Cancelled", "أُلغيت"]];
 
 const T = {
   en: {
+    nav_logos: "Logos", logos_h: "Logos by sector", logos_meta: (n, q, a, d) => `${n} logos · ${q} qualify · from ${a} articles · updated ${d}`,
+    l_q: "Qualifies", l_w: "Watching", l_all: "Everything", l_qonly: "Qualifying only", l_intl: "International · UAE presence", l_search: "Search logos",
+    c_delivery: "We deliver there", c_signal: "Buying signal", c_offer: "Offer fit", sell: "What we can sell", updates: "Latest updates", more: (n) => `${n} more`,
+    openPlay: "Open play", addPipe: "Add to pipeline", inPipe: "In pipeline", trends_h: "Market trends that fit our offers", trends_sub: "Themes in this sweep, mapped to Concentrix offers we can deliver and sell.",
+    t_count: (c, d) => `${c} signals · ${d} in countries we deliver`, t_sell: "Sell", t_who: "Logos", noLogos: "No logos match. Clear the search or show everything.", intlOnly: "International only",
     tagline: "MET Revenue Intelligence · UAE pilot", nav_radar: "Radar", nav_pipeline: "Pipeline", nav_brief: "Monday Brief", nav_sizer: "Sizer",
     radar_h: "Buying signals on the scope", radar_meta: (a, s, p, d) => `Swept ${a} articles from ${s} public sources on ${d} · ${p} plays`,
     leader: "Leader-grade", team: "Team-grade", handled: "Handled", closer: "Closer to the centre = stronger play",
@@ -299,6 +353,11 @@ const T = {
     lowConf: "Low confidence — single or weaker source", conf: { high: "High confidence", medium: "Medium confidence", low: "Low confidence" },
   },
   ar: {
+    nav_logos: "الجهات", logos_h: "الجهات حسب القطاع", logos_meta: (n, q, a, d) => `${n} جهة · ${q} مؤهلة · من ${a} خبراً · آخر تحديث ${d}`,
+    l_q: "مؤهلة", l_w: "قيد المتابعة", l_all: "الكل", l_qonly: "المؤهلة فقط", l_intl: "عالمية · حضور في الإمارات", l_search: "ابحث عن جهة",
+    c_delivery: "نقدم خدماتنا هناك", c_signal: "مؤشر شراء", c_offer: "حل مناسب", sell: "ما يمكننا بيعه", updates: "آخر التحديثات", more: (n) => `${n} أخرى`,
+    openPlay: "فتح الفرصة", addPipe: "إضافة إلى خط المبيعات", inPipe: "في خط المبيعات", trends_h: "اتجاهات السوق المناسبة لحلولنا", trends_sub: "موضوعات هذا المسح مرتبطة بحلول كونسنتريكس التي يمكننا تقديمها وبيعها.",
+    t_count: (c, d) => `${c} مؤشراً · ${d} في دول نقدم فيها خدماتنا`, t_sell: "نبيع", t_who: "الجهات", noLogos: "لا توجد جهات مطابقة. امسح البحث أو اعرض الكل.", intlOnly: "العالمية فقط",
     tagline: "ذكاء الإيرادات · تجربة الإمارات", nav_radar: "الرادار", nav_pipeline: "خط المبيعات", nav_brief: "موجز الأسبوع", nav_sizer: "الحاسبة",
     radar_h: "مؤشرات الشراء على الرادار", radar_meta: (a, s, p, d) => `مسح ${a} خبراً من ${s} مصدراً عاماً في ${d} · ${p} فرصة`,
     leader: "مستوى القيادة", team: "مستوى الفريق", handled: "تمت معالجتها", closer: "كلما اقتربت من المركز كانت الفرصة أقوى",
@@ -327,7 +386,7 @@ const T = {
 /* ---------------- state ---------------- */
 const S = {
   lang: load("mer_lang", "en"), cur: load("mer_cur", "AED"), view: "radar",
-  plays: [], offers: {}, playState: {}, deals: [], settings: {}, sel: null, filter: load("mer_filter", "open"),
+  plays: [], logos: [], trends: [], lq: load("mer_lq", "all"), lc: "ALL", lsearch: "", lintl: false, offers: {}, playState: {}, deals: [], settings: {}, sel: null, filter: load("mer_filter", "open"),
   db: null, user: null, me: null, profiles: {}, sample: null, downloads: null, live: false, outLang: null,
 };
 function load(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } }
@@ -439,6 +498,7 @@ function render() {
   if (S.view === "pipeline") m.innerHTML = viewPipeline();
   else if (S.view === "brief") m.innerHTML = viewBrief();
   else if (S.view === "sizer") m.innerHTML = viewSizer();
+  else if (S.view === "logos") m.innerHTML = viewLogos();
   else m.innerHTML = viewRadar();
   bind();
 }
@@ -557,6 +617,64 @@ function playCard(p) {
       <pre id="outText" dir="${ol === "ar" ? "rtl" : "ltr"}" lang="${ol}">${esc(text)}</pre></div>
     <div class="actions">${actions}</div>
   </article>`;
+}
+
+/* ---------------- LOGOS ---------------- */
+const initials = (n) => { const w = String(n).replace(/[^\p{L}\p{N} ]/gu, "").split(/\s+/).filter((x) => !/^(of|the|and|al|for)$/i.test(x)); return ((w[0]?.[0] || "") + (w[1]?.[0] || w[0]?.[1] || "")).toUpperCase(); };
+const dealFor = (name) => S.deals.find((d) => (d.org || "").toLowerCase() === String(name).toLowerCase() && (d.status || "open") === "open");
+function viewLogos() {
+  const m = S.meta || {};
+  const q = S.lsearch.trim().toLowerCase();
+  const list = S.logos.filter((l) => (S.lq === "all" || l.qualifies) && (S.lc === "ALL" || l.country === S.lc) && (!S.lintl || l.international)
+    && (!q || l.name.toLowerCase().includes(q) || (l.updates || []).some((u) => u.title.toLowerCase().includes(q))));
+  const bySector = {};
+  for (const l of list) (bySector[l.sector] ||= []).push(l);
+  const sectors = Object.keys(bySector).sort((a, b) => bySector[b].filter((x) => x.qualifies).length - bySector[a].filter((x) => x.qualifies).length || bySector[b].length - bySector[a].length);
+  const countries = ["ALL", ...new Set(S.logos.map((l) => l.country))];
+  const cBtns = countries.map((c) => `<button class="chipbtn" data-lc="${esc(c)}" aria-pressed="${S.lc === c}">${esc(c === "ALL" ? t("f_all") : L(...(COUNTRY[c] || [c])))}</button>`).join("");
+  const sections = sectors.map((sec) => {
+    const ls = bySector[sec], nq = ls.filter((x) => x.qualifies).length;
+    return `<section class="sector" aria-labelledby="s-${esc(sec)}"><div class="sector-h"><h2 id="s-${esc(sec)}">${esc(L(...(SECTOR[sec] || [sec])))}</h2><span>${ls.length} · ${nq} ${esc(t("l_q").toLowerCase())}</span></div>
+      <div class="lgrid">${ls.map(logoCard).join("")}</div></section>`;
+  }).join("");
+  const maxT = Math.max(1, ...S.trends.map((x) => x.count));
+  const trends = S.trends.map((tr) => `<div class="trend"><h3>${esc(L(tr.en, tr.ar))} <span>${tr.count}</span></h3>
+      <div class="meter" aria-hidden="true"><i style="width:${Math.round(tr.count / maxT * 100)}%"></i></div>
+      <div class="small">${esc(t("t_count", tr.count, tr.deliverable))}</div>
+      <div class="sell" style="margin-top:6px"><span style="background:none;border:0;padding:0;color:var(--brass);font-weight:600">${esc(t("t_sell"))}:</span>${tr.offers.map((k) => S.offers[k]).filter(Boolean).map((o) => `<span>${esc(L(o.en, o.ar).replace(/ \(.*\)$/, ""))}</span>`).join("")}</div>
+      <ul>${tr.items.slice(0, 2).map((it) => { const u = safeUrl(it.url); return `<li dir="auto">${u ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer" style="color:inherit">${esc(it.title)}</a>` : esc(it.title)} <span class="small">${esc((it.outlet || "").split(" —")[0])}</span></li>`; }).join("")}</ul>
+      ${tr.logos.length ? `<div class="chips">${tr.logos.map((n) => `<button data-lsearch="${esc(n)}" dir="auto">${esc(n)}</button>`).join("")}</div>` : ""}</div>`).join("");
+  return `<div class="logos-head"><div><h1>${esc(t("logos_h"))}</h1><p>${esc(t("logos_meta", S.logos.length, S.logos.filter((l) => l.qualifies).length, m.articles ?? "—", fmtDate(m.date)))}</p></div>
+      <div class="seg" role="group" aria-label="Show"><button data-lq="all" aria-pressed="${S.lq === "all"}">${esc(t("l_all"))}</button><button data-lq="q" aria-pressed="${S.lq === "q"}">${esc(t("l_qonly"))}</button></div></div>
+    <div class="lbar"><input type="search" id="lsearch" placeholder="${esc(t("l_search"))}" aria-label="${esc(t("l_search"))}" value="${esc(S.lsearch)}">${cBtns}<button class="chipbtn" id="lintl" aria-pressed="${S.lintl}">🌐 ${esc(t("intlOnly"))}</button></div>
+    <div class="logos-layout"><div>${sections || `<div class="panel empty">${esc(t("noLogos"))}</div>`}</div>
+      <aside class="panel trends" aria-labelledby="th"><div><h2 id="th" style="font-size:17px">${esc(t("trends_h"))}</h2><p class="small" style="margin:4px 0 0;color:var(--ink-3);font-size:12.5px">${esc(t("trends_sub"))}</p></div>${trends}</aside></div>
+    <p class="foot">Meridian · internal prototype for the CNX MET new-business team. A logo qualifies when we deliver in its country, it has a buying signal scoring 55+, and at least one Concentrix offer fits. Updates link to the original public article.</p>`;
+}
+function logoCard(l) {
+  const hue = SECTOR_HUE[l.sector] ?? 210, deal = dealFor(l.name);
+  const ups = l.updates || [];
+  const upd = (u) => { const url = safeUrl(u.url); return `<li><time datetime="${esc(u.date)}">${esc(fmtDate(u.date).replace(/ \d{4}$/, ""))}</time><span dir="auto">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(u.title)}</a>` : esc(u.title)} <span class="o">${esc((u.outlet || "").split(" —")[0])}${u.total ? " · " + u.total : ""}</span></span></li>`; };
+  const offers = (l.offers || []).map((k) => S.offers[k]).filter(Boolean);
+  return `<article class="panel logo ${l.qualifies ? "q" : ""}">
+    <div class="logo-top"><div class="mono" style="background:hsl(${hue} 45% 38%)" aria-hidden="true">${esc(initials(l.name))}</div>
+      <div style="min-width:0;flex:1"><b dir="auto">${esc(l.name)}</b><small>${esc(L(...(COUNTRY[l.country] || [l.country])))}${l.international ? " · 🌐 " + esc(t("l_intl")) : ""}</small></div>
+      <span class="pill ${l.qualifies ? "leader" : "mute"}">${esc(l.qualifies ? t("l_q") : t("l_w"))}</span></div>
+    <div class="checks"><span class="${l.checks?.delivery ? "ok" : ""}">${esc(t("c_delivery"))}</span><span class="${l.checks?.signal ? "ok" : ""}">${esc(t("c_signal"))}${l.maxScore ? " " + l.maxScore : ""}</span><span class="${l.checks?.sellable ? "ok" : ""}">${esc(t("c_offer"))}</span></div>
+    ${offers.length ? `<div><div class="label">${esc(t("sell"))}</div><div class="sell" style="margin-top:4px">${offers.map((o) => `<span>${esc(L(o.en, o.ar))}</span>`).join("")}</div></div>` : ""}
+    <div><div class="label">${esc(t("updates"))}</div><ul class="upd" style="margin-top:4px">${ups.slice(0, 2).map(upd).join("")}</ul>
+      ${ups.length > 2 ? `<details style="margin-top:4px"><summary class="o" style="cursor:pointer;font-size:12px;color:var(--sea)">${esc(t("more", ups.length - 2))}</summary><ul class="upd" style="margin-top:6px">${ups.slice(2).map(upd).join("")}</ul></details>` : ""}</div>
+    <div class="logo-act">${l.playIds?.length ? `<button class="btn" data-openplay="${esc(l.playIds[0])}">${esc(t("openPlay"))}</button>` : ""}
+      ${deal ? `<button class="btn" data-opendeal2="${esc(deal.id)}"><span class="pill good" style="padding:0 6px">✓</span> ${esc(t("inPipe"))} · ${esc(L(stageOf(deal.stage).en, stageOf(deal.stage).ar))}</button>` : `<button class="btn ${l.qualifies ? "primary" : ""}" data-addlogo="${esc(l.id)}">+ ${esc(t("addPipe"))}</button>`}</div>
+  </article>`;
+}
+async function addLogoDeal(id) {
+  const l = S.logos.find((x) => x.id === id); if (!l || dealFor(l.name)) return;
+  const play = l.playIds?.length ? S.plays.find((p) => p.id === l.playIds[0]) : null;
+  const dealId = await addDeal({ title: `${l.name} — ${play ? L(...(TYPES[play.type] || [play.type])) : "new logo"}`, org: l.name, valueUsd: play ? Math.round(((play.low || 0) + (play.high || 0)) / 2) : 0, stage: "identified", source: "meridian", playId: play?.id || null,
+    event: (l.updates?.[0]?.title || "").slice(0, 200), nextStep: "First outreach", nextDate: addDays(3), closeDate: addDays(120), history0: "Added from Logos: " + (l.updates?.[0]?.title || l.name).slice(0, 120) });
+  if (play && dealId) await savePlayState(play.id, { status: "accepted", dealId, by: S.me?.id || null, at: new Date().toISOString() });
+  toast("✓ " + t("inPipe")); render();
 }
 
 /* ---------------- PIPELINE ---------------- */
@@ -763,6 +881,14 @@ function bind() {
     col.ondragleave = () => col.classList.remove("over");
     col.ondrop = (e) => { e.preventDefault(); col.classList.remove("over"); const id = e.dataTransfer.getData("text/plain"); const d = S.deals.find((x) => x.id === id); if (d && d.stage !== col.dataset.stage) patchDeal(id, { stage: col.dataset.stage, stageEntered: today() }, `${stageOf(d.stage).en} → ${stageOf(col.dataset.stage).en}`); };
   });
+  m.querySelectorAll("[data-lq]").forEach((b) => (b.onclick = () => { S.lq = b.dataset.lq; keep("mer_lq", S.lq); render(); }));
+  m.querySelectorAll("[data-lc]").forEach((b) => (b.onclick = () => { S.lc = b.dataset.lc; render(); }));
+  m.querySelectorAll("[data-lsearch]").forEach((b) => (b.onclick = () => { S.lsearch = b.dataset.lsearch; S.lq = "all"; render(); scrollTo({ top: 0, behavior: "smooth" }); }));
+  const ls = $("#lsearch"); if (ls) ls.oninput = () => { S.lsearch = ls.value; const pos = ls.selectionStart; render(); const n = $("#lsearch"); n.focus(); n.setSelectionRange(pos, pos); };
+  const li = $("#lintl"); if (li) li.onclick = () => { S.lintl = !S.lintl; render(); };
+  m.querySelectorAll("[data-openplay]").forEach((b) => (b.onclick = () => { S.sel = b.dataset.openplay; S.filter = "all"; location.hash = "radar"; }));
+  m.querySelectorAll("[data-addlogo]").forEach((b) => (b.onclick = () => addLogoDeal(b.dataset.addlogo)));
+  m.querySelectorAll("[data-opendeal2]").forEach((b) => (b.onclick = () => { location.hash = "pipeline"; setTimeout(() => openDeal(b.dataset.opendeal2), 50); }));
   const nd = $("#newDeal"); if (nd) nd.onclick = newDealDrawer;
   const tf = $("#targetForm"); if (tf) tf.onsubmit = (e) => { e.preventDefault(); const v = parseFloat(String($("#targetIn").value).replace(/[^\d.]/g, "")); if (!isNaN(v) && v > 0) saveSettings({ targetUsd: v / FX[S.cur], quarter: quarter() }); };
   const csv = $("#csvBtn"); if (csv) { if (!S.downloads) csv.hidden = true; else csv.onclick = exportCsv; }
@@ -849,7 +975,7 @@ addEventListener("keydown", (e) => {
   else if (k === "a" && playStatus(S.plays.find((p) => p.id === S.sel) || {}) === "new") act("accept");
   else if (k === "s") act("snooze"); else if (k === "c") copyOut();
 });
-function route() { const h = location.hash.slice(1); S.view = ["radar", "pipeline", "brief", "sizer"].includes(h) ? h : "radar"; closeLayer(); render(); scrollTo(0, 0); }
+function route() { const h = location.hash.slice(1); S.view = ["logos", "radar", "pipeline", "brief", "sizer"].includes(h) ? h : "logos"; closeLayer(); render(); scrollTo(0, 0); }
 addEventListener("hashchange", route);
 $("#langBtn").onclick = () => { S.lang = S.lang === "ar" ? "en" : "ar"; keep("mer_lang", S.lang); S.outLang = null; render(); };
 
@@ -857,8 +983,8 @@ $("#langBtn").onclick = () => { S.lang = S.lang === "ar" ? "en" : "ar"; keep("me
 async function boot() {
   try { S.playState = JSON.parse(load("mer_playstate", "{}")); S.deals = JSON.parse(load("mer_deals", "[]")); S.settings = JSON.parse(load("mer_settings", "{}")); } catch {}
   route();
-  const [plays, offers, meta] = await Promise.all([fetch("plays.json").then((r) => r.json()), fetch("offers.json").then((r) => r.json()), fetch("meta.json").then((r) => r.json()).catch(() => ({}))]);
-  S.plays = plays; S.offers = offers; S.meta = meta; render();
+  const [plays, offers, meta, logos, trends] = await Promise.all(["plays", "offers", "meta", "logos", "trends"].map((f) => fetch(f + ".json").then((r) => r.json()).catch(() => (f === "meta" || f === "offers" ? {} : []))));
+  S.plays = plays; S.offers = offers; S.meta = meta; S.logos = logos; S.trends = trends; render();
   if (!window.claude?.use) return;
   const [db, user, sample, downloads] = await Promise.all(["db", "user", "sample", "downloads"].map((n) => window.claude.use(n).catch(() => null)));
   S.sample = sample; S.downloads = downloads; S.user = user;

@@ -64,6 +64,10 @@ const COUNTRY_RULES: [string, RegExp][] = [
   ['OM', /\b(Oman|Muscat)\b|سلطنة عمان|مسقط/i],
 ];
 
+const INTERNATIONAL_NAMES = /\b(China|Chinese|US|U\.S\.|American|UK|British|India|Indian|French|France|German|Germany|Japan|Japanese|Korea|Korean|Singapore|Singaporean|Swiss|Dutch|Italian|Spanish|Canadian|Australian|European)\b/; // case-sensitive: 'US' ≠ 'us'
+const INTERNATIONAL_PHRASES = /\b(multinational|first overseas office|overseas office|regional headquarters|regional HQ|enters the (UAE|GCC|Middle East)|expands? (in)?to the (UAE|GCC|Middle East)|opens? (its )?(first )?(office|hub) in (Dubai|Abu Dhabi|the UAE))\b/i;
+const INTERNATIONAL = { test: (t: string) => INTERNATIONAL_NAMES.test(t) || INTERNATIONAL_PHRASES.test(t) };
+
 export type Extraction = {
   signalType: SignalType;
   track: Track;
@@ -78,6 +82,7 @@ export type Extraction = {
   matched: string[]; // evidence phrases (must be substrings of the input)
   ruleStrength: number; // 0..1
   relevant: boolean; // false = no buying-signal pattern matched → not a signal
+  international: boolean; // foreign company with (or entering) a UAE/MET presence
   roles: number | null; // e.g. number of CS roles for hiring signals
 };
 
@@ -176,6 +181,7 @@ export function classify(text: string, competitorNames: string[] = []): Extracti
     deadline: extractDeadline(text), matched: [...new Set(matched)].slice(0, 4),
     ruleStrength: best ? Math.min(1, best.score) * (matched.length > 1 ? 1 : 0.85) : 0.3,
     relevant: !!best,
+    international: INTERNATIONAL.test(text) && country !== 'XX',
     roles: rolesM ? parseInt(rolesM[1], 10) : null,
   };
 }
@@ -188,3 +194,77 @@ export function groundCheck(source: string, values: (string | null | undefined)[
 }
 
 export const isArabic = (s: string) => (s.match(/[؀-ۿ]/g)?.length ?? 0) > s.length * 0.25;
+
+/* ---------------- Headline subject (the "logo") ---------------- */
+const PLACES = /^(UAE|U\.A\.E|Dubai|Abu Dhabi|Sharjah|Ajman|Saudi Arabia|Saudi|KSA|Riyadh|Jeddah|Egypt|Cairo|Jordan|Amman|Qatar|Doha|Kuwait|Bahrain|Oman|Muscat|Türkiye|Turkey|Istanbul|GCC|Gulf|Middle East|MENA|US|USA|UK|China|India|Europe|Africa|Sudan|Iraq|Iran|Syria|Lebanon|Israel|Gaza)$/i;
+const DESCRIPTORS = /^(Chinese|Indian|American|British|French|German|Japanese|Korean|Singaporean|Swiss|Dutch|Italian|Spanish|Canadian|Australian|European|Firm|Company|Startup|insurtech|fintech|proptech|healthtech|edtech|startup|start-up|company|firm|platform|operator|giant|provider|lender|bank|group|developer|retailer|carrier|airline|app|brand|unicorn|AI|tech|digital|leading|new|global|regional|local|state-owned|listed|Emirati|Saudi|Egyptian|Jordanian|Qatari|Kuwaiti|Bahraini|Omani|Turkish|Dubai-based|Abu Dhabi-based|UAE-based|Riyadh-based|Cairo-based|based)$/i;
+const HONORIFIC = /^(Sheikh|Shaikh|HH|H\.H\.|President|Crown|Prince|Mr|Mrs|Ms|Dr|His|Her|Minister)\b/;
+const GENERIC = /^(Days?|Two|Three|Four|Five|Hot|New|Top|How|Why|What|When|Watch|Breaking|Exclusive|Opinion|Analysis|The|A|An|This|These|Inside|Report|Update|Reprieve|Relief|Boost|Record|Strong|Slow|Push|Plan|Deal|Experts?|Residents?|Officials?|Investors?|Markets?|Stocks?|Oil|Gold|Prices?|Here|More|Most|All|Several|Many)$/i;
+const CONNECT = /^(of|for|and|&|al|Al|bin|de|du)$/;
+
+/** The organisation a headline is about, e.g. "Egypt's Connect Money raises $3.5m" → "Connect Money". Null for people, places and generic openers. */
+export function headlineSubject(title: string): string | null {
+  const t = title.trim().replace(/^["'“‘«]+/, '');
+  if (!t) return null;
+  if (isArabic(t)) {
+    if (/^(بحضور|برئاسة|سمو|صاحب|الشيخ|خلال|في|من|بعد|بتنظيم|تحت|بمشاركة|ضمن|عبر|لدى|بالتعاون|بدعم)/.test(t) || / بن /.test(t.split(/[–:\-.]/)[0])) return null;
+    const toks = t.split(/\s+/);
+    const out: string[] = [];
+    for (const w of toks) {
+      if (/^[–\-:.،,]$/.test(w) || /[:،,]$/.test(w)) { if (/[:،,]$/.test(w)) out.push(w.replace(/[:،,]$/, '')); break; }
+      if (out.length && /^(ت|ي)[؀-ۿ]{3,}$/.test(w)) break; // present-tense verb ends the subject
+      if (out.length && /^و[«"]/.test(w)) break; // "X و«Y»" partnership → first party
+      out.push(w.replace(/[«»"]/g, ''));
+      if (out.length >= 4) break;
+    }
+    const s = out.join(' ').replace(/\s+(التابع|التابعة|الجديد|الجديدة)$/, '').trim();
+    return s.length >= 3 && s.length <= 60 ? s : null;
+  }
+  if (HONORIFIC.test(t)) return null;
+  let toks = t.split(/\s+/);
+  // strip a possessive owner prefix: "Egypt's", "UAE's", "ADGM's", "M42's"
+  const pos = toks.findIndex((w) => /['’]s$/.test(w));
+  if (pos >= 0 && pos <= 2) toks = toks.slice(pos + 1);
+  // skip leading descriptors ("Insurtech company Igloo", "Saudi AI startup 009")
+  while (toks.length && (DESCRIPTORS.test(toks[0]) || /^[a-z][a-z-]*$/.test(toks[0]))) toks = toks.slice(1);
+  const out: string[] = [];
+  for (const w of toks) {
+    const clean = w.replace(/[,:;.!?"”’]+$/, '');
+    const isName = /^[A-Z0-9]/.test(clean) || /^[a-z]+[A-Z]/.test(clean) || /^(e&|du)$/.test(clean);
+    if (isName && !(out.length && GENERIC.test(clean) && false)) { out.push(clean); if (clean !== w) break; continue; }
+    if (out.length && CONNECT.test(clean)) { out.push(clean); continue; }
+    break;
+  }
+  const andIdx = out.indexOf('and'); if (andIdx > 0) out.splice(andIdx);
+  while (out.length && CONNECT.test(out[out.length - 1])) out.pop();
+  if (out.some((w) => /-(led|based|backed|owned)$/i.test(w))) return null;
+  const s = out.join(' ').replace(/['’]s$/, '').trim();
+  if (!s || s.length < 2 || s.length > 60 || PLACES.test(s) || GENERIC.test(out[0] ?? '')) return null;
+  if (out.length > 6) return null;
+  return s;
+}
+
+const ORG_WORD = /\b(Group|Bank|Authority|Ministry|Department|Council|Airways|Airlines|Air|Airport|Airports|Holding|Holdings|Company|Capital|Police|Clinic|Hospital|Health|Healthcare|Centre|Center|Office|Fund|Ventures|Insurance|Telecom|Properties|Energy|Customs|Municipality|University|Exchange|Pay|Technologies|Tech|Labs|Logistics|Ports|Rail|Motors|Foods|Retail|Developments?|Investments?|Partners|Media|Free Zone|Bourse|Commission|Agency|Corporation|Corp|Inc|LLC|PJSC|ADNOC|Aramco|Etisalat|e&|du|Emirates|Etihad|flydubai|Emaar|Aldar|Noon|Careem|Talabat|Tabby|Tamara)\b|وزارة|هيئة|دائرة|بنك|مصرف|شركة|مجموعة|مجلس|مؤسسة|طيران|مستشفى|جامعة|موانئ|صندوق/i;
+const BUSINESS_VERB = /^(raises?|raised|secures?|launch(es|ed)?|opens?|opened|signs?|signed|acquires?|acquired|to (acquire|buy|launch|open|expand|invest|list|build)|buys?|partners?|teams up|expands?|expanded|announces?|announced|unveils?|unveiled|wins?|won|appoints?|appointed|hires?|invests?|enters?|rolls? out|introduces?|debuts?|reports?|posts?|resumes?|plans?|lists?|files?|completes?|closes?|inks?|selects?|deploys?|adds?|cuts?)\b/i;
+const NOT_ORG = /\b(Fort|Museum|Mosque|Park|Beach|Island|Road|Street|Bridge|Tower|Summit|Forum|Festival|Week|Exhibition|Expo|Cup|Award|Awards|Prize|Minister|President|Sheikh|bin|Prince|Princess|King|Queen)\b|%|^\d+(st|nd|rd|th)?$|^\d+$/i;
+
+/** For general news that is not a buying signal: does the headline lead with a company doing business? Keeps the inclusive logo list free of people, events, numbers and topics. */
+export function isCompanyNews(title: string, subject: string | null): boolean {
+  if (!subject || subject.length < 3 || NOT_ORG.test(subject) || !/[\p{L}]/u.test(subject)) return false;
+  if (ORG_WORD.test(subject) && subject.split(/\s+/).length >= 2) return true;
+  if (/^(Health|Tech|Bank|Group|Energy|Media|Retail|Capital)$/i.test(subject)) return false;
+  if (isArabic(subject)) return false;
+  const after = title.slice(title.indexOf(subject) + subject.length).replace(/^['’]s\b/, '').trim();
+  return BUSINESS_VERB.test(after);
+}
+
+const LOCAL_NAME = /\b(Abu Dhabi|Dubai|Sharjah|Ajman|Fujairah|Emirates|Emirati|UAE|Saudi|Riyadh|Arab|Arabian|Gulf|Egypt|Jordan|Qatar|Kuwait|Bahrain|Oman|ADNOC|Aramco)\b|[\u0600-\u06FF]/i;
+/** "International logo with UAE presence": foreign origin attached to the company itself, or an explicit market-entry phrase. */
+export function isInternational(title: string, subject: string | null): boolean {
+  if (subject && LOCAL_NAME.test(subject)) return false;
+  if (INTERNATIONAL_PHRASES.test(title)) return true;
+  if (!subject) return false;
+  const i = title.indexOf(subject);
+  const before = i > 0 ? title.slice(Math.max(0, i - 40), i) : '';
+  return INTERNATIONAL_NAMES.test(before) || INTERNATIONAL_NAMES.test(subject.split(' ')[0]);
+}

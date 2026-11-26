@@ -19,7 +19,10 @@
     "sample": "tsx scripts/make-sample.ts",
     "backup": "bash scripts/backup.sh",
     "verify:egress": "tsx --conditions=react-server scripts/verify-egress.ts",
-    "reclassify": "tsx --conditions=react-server scripts/reclassify.ts"
+    "reclassify": "tsx --conditions=react-server scripts/reclassify.ts",
+    "reresolve": "tsx --conditions=react-server scripts/reresolve.ts",
+    "export:radar": "tsx --conditions=react-server scripts/export-radar.ts",
+    "refresh:radar": "npm run ingest:once && npm run reclassify && npm run reresolve && npm run export:radar"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.14.0",

@@ -115,3 +115,73 @@ describe('M&A and funding need real context', () => {
     expect(classify('شركة ناشئة في دبي تجمع 5 ملايين دولار في جولة تمويل', []).signalType).toBe('funding');
   });
 });
+
+import { headlineSubject } from '@/lib/engine/classify';
+describe('headline subject (logo) extraction', () => {
+  const cases: [string, string | null][] = [
+    ["Egypt's Connect Money raises $3.5 million pre-Series A", 'Connect Money'],
+    ['Jordanian fintech invoiceQ raises $5 million in oversubscribed Series A', 'invoiceQ'],
+    ['Insurtech company Igloo enters EMEA with Democrance acquisition', 'Igloo'],
+    ["M42’s Healthpoint opens dedicated Cleft Lip and Palate Clinic in Abu Dhabi", 'Healthpoint'],
+    ['PureHealth acquires 6 facilities from Aspen Clinics', 'PureHealth'],
+    ['Ministry of Tourism makes 5 digital services available through Tawakkalna App', 'Ministry of Tourism'],
+    ['Abu Dhabi Government to showcase 80+ AI-powered projects at GITEX Global 2026', 'Abu Dhabi Government'],
+    ['Shaffra establishes Saudi headquarters as AI workforce deployments grow', 'Shaffra'],
+    ['Saudi AI startup 009 raises $1.4 million pre-seed', '009'],
+    ['Sheikh Mohammed approves comprehensive strategy for AI-powered assistants', null],
+    ['Abu Dhabi rises among world\'s leading AI cities', null],
+    ['Two members of Syrian security forces killed in attack', null],
+    ['بيورهيلث تستحوذ على 6 مراكز طبية من «أسبن كلينيكس»', 'بيورهيلث'],
+    ['دائرة التمكين الحكومي – أبوظبي تطلق برنامج «إيه آي نيتف»', 'دائرة التمكين الحكومي'],
+    ['بحضور خالد بن محمد بن زايد.. طحنون بن زايد يترأس اجتماع', null],
+  ];
+  for (const [title, want] of cases) it(title.slice(0, 50), () => expect(headlineSubject(title)).toBe(want));
+});
+
+describe('international logos with UAE presence', () => {
+  it('flags foreign companies entering the UAE', () => {
+    const x = classify('China Securities opens first overseas office in Dubai to boost Middle East ties', []);
+    expect(x.country).toBe('AE');
+    expect(x.international).toBe(true);
+  });
+  it('local stories are not international', () => {
+    expect(classify('PureHealth acquires 6 facilities from Aspen Clinics in Abu Dhabi', []).international).toBe(false);
+  });
+});
+
+describe('subject edge cases from live data', () => {
+  it.each([
+    ['PureHealth and Nafis partner to empower Emirati talent', 'PureHealth'],
+    ["US-led group reaches deal to acquire Lukoil's global assets", null],
+    ['Reprieve for homebuyers as UAE mortgage rule won’t apply', null],
+    ['بيورهيلث و«نافس» يتعاونان لتمكين الكفاءات الوطنية', 'بيورهيلث'],
+  ])('%s', (t, want) => expect(headlineSubject(t)).toBe(want));
+  it('lowercase "us" is not the United States', () => {
+    expect(classify('M42 Healthpoint opens a clinic in Abu Dhabi, giving us new capacity', []).international).toBe(false);
+  });
+});
+
+import { isCompanyNews } from '@/lib/engine/classify';
+describe('inclusive logo list stays company-only', () => {
+  it.each([
+    ['Aramco signs supply deal with Asian buyers', true],
+    ['Lufthansa resumes flights to Dubai', true],
+    ['Chinese firm Sungrow opens Dubai office', true],
+    ['Abu Dhabi Airports reports record passenger traffic', true],
+    ['Aishwarya Rai Bachchan attends Dubai premiere', false],
+    ['Deadly storms hit the region', false],
+    ['11 things to do in Dubai this weekend', false],
+    ['Abu Dhabi Future Health Summit 2026 opens', false],
+    ['Theyab bin Mohamed bin Zayed receives delegation', false],
+  ])('%s', (t, want) => expect(isCompanyNews(t, headlineSubject(t))).toBe(want));
+});
+
+import { isInternational } from '@/lib/engine/classify';
+describe('international badge', () => {
+  it.each([
+    ['China Securities opens first overseas office in Dubai', 'China Securities', true],
+    ['Chinese firm Sungrow opens Dubai office', 'Sungrow', true],
+    ['Tamara raises funding from US investors', 'Tamara', false],
+    ['Abu Dhabi Civil Defence Authority signs MoU with French firm', 'Abu Dhabi Civil Defence Authority', false],
+  ])('%s', (t, subj, want) => expect(isInternational(t, subj)).toBe(want));
+});
