@@ -1,0 +1,34 @@
+# One command:  cp .env.example .env  (set APP_SECRET)  &&  docker compose up -d --build
+# Then:  docker compose run --rm migrate npm run db:seed            (first admin)
+#   or:  docker compose run --rm migrate npm run db:seed -- --demo  (admin + DEMO DATA)
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment: { POSTGRES_USER: meridian, POSTGRES_PASSWORD: "${DB_PASSWORD:-meridian}", POSTGRES_DB: meridian }
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U meridian"], interval: 5s, retries: 20 }
+  migrate:
+    build: .
+    env_file: .env
+    environment: { DATABASE_URL: "postgres://meridian:${DB_PASSWORD:-meridian}@db:5432/meridian" }
+    command: npm run db:migrate
+    depends_on: { db: { condition: service_healthy } }
+  web:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment: { DATABASE_URL: "postgres://meridian:${DB_PASSWORD:-meridian}@db:5432/meridian", INTERNAL_URL: "http://127.0.0.1:3000" }
+    ports: ["${PORT:-3000}:3000"]
+    volumes: [uploads:/app/uploads]
+    depends_on: { migrate: { condition: service_completed_successfully } }
+    healthcheck: { test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"], interval: 30s }
+  worker:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment: { DATABASE_URL: "postgres://meridian:${DB_PASSWORD:-meridian}@db:5432/meridian" }
+    command: npm run worker
+    volumes: [uploads:/app/uploads]
+    depends_on: { migrate: { condition: service_completed_successfully } }
+volumes: { pgdata: {}, uploads: {} }

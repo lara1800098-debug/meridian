@@ -1,0 +1,20 @@
+{"text":"Abu Dhabi Department of Health invites bids for an Arabic and English patient contact centre. Submission deadline 15 March 2027.","expect":{"signalType":"tender","sector":"government","country":"AE","relevant":true}}
+{"text":"هيئة الطرق والمواصلات في دبي تطرح مناقصة لتشغيل مركز اتصال سعادة المتعاملين","expect":{"signalType":"tender","country":"AE","relevant":true}}
+{"text":"Dubai Islamic Bank to acquire Emirates Islamic to form Dh585bn company","expect":{"signalType":"mna","country":"AE","relevant":true}}
+{"text":"Dubai fintech startup PayLoop raises $12 million Series A","expect":{"signalType":"funding","sector":"fintech","country":"AE","relevant":true}}
+{"text":"Noon is hiring 150 customer service agents in Dubai","expect":{"signalType":"hiring_cs","country":"AE","relevant":true}}
+{"text":"Saraab Mobile appoints new Chief Customer Officer to lead service transformation","expect":{"signalType":"leader_appointed","relevant":true}}
+{"text":"حكومة دبي تطلق برنامجاً لتوظيف الذكاء الاصطناعي في تجربة المتعاملين","expect":{"signalType":"gov_cx_programme","country":"AE","relevant":true}}
+{"text":"Ministry of Human Resources and Emiratisation announces new Emiratisation targets for private companies","expect":{"signalType":"regulation","country":"AE","relevant":true}}
+{"text":"Shaffra establishes regional headquarters in Riyadh as AI deployments grow","expect":{"signalType":"regional_hq","country":"SA","relevant":true}}
+{"text":"Qamar Digital Bank granted full digital bank licence by the central bank","expect":{"signalType":"new_licence","sector":"bfsi","relevant":true}}
+{"text":"Retailer announces layoffs and restructuring of its UAE operations","expect":{"signalType":"budget_freeze","relevant":true}}
+{"text":"Two members of Syrian security forces killed in attack, state media says","expect":{"relevant":false}}
+{"text":"Hot US inflation tests gold as markets wait for the Fed","expect":{"relevant":false}}
+{"text":"Brazil announces new regulatory measures to curb household indebtedness","expect":{"country":"XX"}}
+{"text":"Sharjah Electricity and Water Authority launches customer happiness centre upgrade with omnichannel services","expect":{"signalType":"cc_transformation","sector":"government","country":"AE","relevant":true}}
+{"text":"Teleperformance wins contract to run customer service for a Gulf airline","competitors":["Teleperformance"],"expect":{"signalType":"competitor_move","relevant":true}}
+{"text":"Bayt Retail Group prepares for White Friday with new e-commerce platform","expect":{"signalType":"seasonal_peak","relevant":true}}
+{"text":"Dune Logistics expands to Egypt and Jordan with a new regional hub","expect":{"signalType":"cross_border","relevant":true}}
+{"text":"UAE government services star rating results published for 2026","expect":{"signalType":"service_ratings","country":"AE","relevant":true}}
+{"text":"The festival launches tonight on the corniche","expect":{"relevant":false}}

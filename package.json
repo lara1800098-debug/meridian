@@ -1,0 +1,62 @@
+{
+  "name": "meridian",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p ${PORT:-3000}",
+    "worker": "tsx --conditions=react-server src/worker/index.ts",
+    "db:migrate": "tsx --conditions=react-server src/db/migrate.ts",
+    "db:seed": "tsx --conditions=react-server src/db/seed.ts",
+    "ingest:once": "tsx --conditions=react-server src/worker/run-once.ts",
+    "eval": "tsx --conditions=react-server eval/run.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "e2e": "playwright test --trace off",
+    "retention": "tsx --conditions=react-server scripts/retention.ts",
+    "sample": "tsx scripts/make-sample.ts",
+    "backup": "bash scripts/backup.sh",
+    "verify:egress": "tsx --conditions=react-server scripts/verify-egress.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
+    "@fontsource/ibm-plex-sans": "^5.3.0",
+    "@fontsource/ibm-plex-sans-arabic": "^5.3.0",
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
+    "exceljs": "^4.4.0",
+    "fast-xml-parser": "^5.12.1",
+    "mammoth": "^1.13.0",
+    "next": "^15.5.29",
+    "otplib": "^13.6.0",
+    "pdf-parse": "^2.4.5",
+    "postgres": "^4.1.1",
+    "qrcode": "^1.5.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "recharts": "^3.11.1",
+    "server-only": "^0.0.1",
+    "undici": "^8.13.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^26.6.11",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.3.3",
+    "@types/react-dom": "^19.3.0",
+    "autoprefixer": "^10.7.0",
+    "postcss": "^8.5.33",
+    "tailwindcss": "^3.4.19",
+    "tsx": "^4.23.15",
+    "typescript": "5.9",
+    "vitest": "^5.1.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,0 +1,56 @@
+/*
+ * MERIDIAN THEME TOKENS — the ONLY place colours, fonts, radii and shadows are defined.
+ * ⚠ PLACEHOLDER VALUES. Replace with the official Concentrix 2026 brand kit values.
+ * Swap = edit this file (and theme/tokens.ts for charts/PDF). Nothing else hard-codes colour.
+ * Values are space-separated RGB channels so Tailwind can apply opacity.
+ */
+:root {
+  --brand-primary: 30 41 89;        /* PLACEHOLDER: CNX primary */
+  --brand-primary-fg: 255 255 255;
+  --brand-accent-1: 0 150 170;      /* PLACEHOLDER: CNX accent 1 */
+  --brand-accent-2: 236 132 52;     /* PLACEHOLDER: CNX accent 2 */
+  --brand-accent-3: 120 94 200;     /* PLACEHOLDER: CNX accent 3 */
+
+  --bg: 246 247 250;
+  --surface: 255 255 255;
+  --surface-2: 240 242 247;
+  --line: 222 226 234;
+  --ink: 17 22 38;
+  --ink-2: 70 78 98;
+  --ink-3: 112 120 140;
+
+  --good: 22 128 82;
+  --warn: 176 110 0;
+  --bad: 196 42 52;
+  --info: 30 100 200;
+
+  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;            /* PLACEHOLDER font */
+  --font-arabic: "IBM Plex Sans Arabic", "Noto Sans Arabic", "Segoe UI", sans-serif; /* PLACEHOLDER Arabic font */
+
+  --radius-card: 14px;
+  --radius-control: 9px;
+  --shadow-card: 0 1px 2px rgb(17 22 38 / 0.05), 0 2px 10px rgb(17 22 38 / 0.04);
+  --shadow-pop: 0 10px 30px rgb(17 22 38 / 0.16);
+}
+[data-theme="dark"] {
+  --brand-primary: 132 150 230;
+  --brand-primary-fg: 10 14 30;
+  --brand-accent-1: 64 196 214;
+  --brand-accent-2: 246 160 92;
+  --brand-accent-3: 166 142 240;
+
+  --bg: 11 14 24;
+  --surface: 20 24 38;
+  --surface-2: 28 33 50;
+  --line: 45 52 74;
+  --ink: 236 239 246;
+  --ink-2: 180 187 204;
+  --ink-3: 135 143 164;
+
+  --good: 74 196 132;
+  --warn: 232 172 64;
+  --bad: 240 106 112;
+  --info: 110 160 245;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-pop: 0 10px 30px rgb(0 0 0 / 0.5);
+}

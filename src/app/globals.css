@@ -1,0 +1,39 @@
+@import '../../theme/tokens.css';
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/ibm-plex-sans-arabic/400.css';
+@import '@fontsource/ibm-plex-sans-arabic/500.css';
+@import '@fontsource/ibm-plex-sans-arabic/600.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { background: rgb(var(--bg)); color: rgb(var(--ink)); }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+html[lang="ar"] body { font-family: var(--font-arabic); }
+.font-num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid rgb(var(--brand-accent-1)); outline-offset: 2px; border-radius: 4px; }
+
+@layer components {
+  .card { @apply bg-surface rounded-card shadow-card border border-line; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-ctl px-3.5 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-primary { @apply btn bg-brand-primary text-brand-primary-fg hover:opacity-90; }
+  .btn-ghost { @apply btn border border-line bg-surface text-ink hover:bg-surface-2; }
+  .btn-danger { @apply btn border border-bad/40 text-bad hover:bg-bad/10; }
+  .input { @apply w-full rounded-ctl border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-3 focus:border-brand-a1 focus:outline-none; }
+  .label { @apply mb-1 block text-xs font-medium text-ink-2; }
+  .h1 { @apply text-2xl font-semibold tracking-tight text-ink; }
+  .h2 { @apply text-base font-semibold text-ink; }
+  .muted { @apply text-ink-3 text-sm; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium; }
+  .table { @apply w-full text-sm; }
+  .table th { @apply px-3 py-2 text-start text-xs font-medium uppercase tracking-wide text-ink-3 border-b border-line; }
+  .table td { @apply px-3 py-2.5 border-b border-line align-top; }
+}
+@media print {
+  .no-print { display: none !important; }
+  html, body { background: white !important; }
+  .min-h-screen { min-height: 0 !important; }
+  .break-inside-avoid { break-inside: avoid; }
+}
