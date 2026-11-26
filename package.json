@@ -18,7 +18,8 @@
     "retention": "tsx --conditions=react-server scripts/retention.ts",
     "sample": "tsx scripts/make-sample.ts",
     "backup": "bash scripts/backup.sh",
-    "verify:egress": "tsx --conditions=react-server scripts/verify-egress.ts"
+    "verify:egress": "tsx --conditions=react-server scripts/verify-egress.ts",
+    "reclassify": "tsx --conditions=react-server scripts/reclassify.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.14.0",

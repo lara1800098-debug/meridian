@@ -104,3 +104,14 @@ describe('Arabic word-boundary', () => {
     expect(classify('برنامج نافس يرفع نسب التوطين في القطاع الخاص بالإمارات', []).signalType).toBe('regulation');
   });
 });
+
+describe('M&A and funding need real context', () => {
+  it('generic "acquired" or "يجمع" is not M&A / funding', () => {
+    expect(classify('Industry ministry issues nearly 56,000 Certificates of Origin as exporters acquired new markets', []).signalType).not.toBe('mna');
+    expect(classify('«نوما» حي إبداعي جديد يجمع بين الإنسان والثقافة', []).signalType).not.toBe('funding');
+  });
+  it('real deals still match', () => {
+    expect(classify('PureHealth acquires 6 facilities from Aspen Clinics', []).signalType).toBe('mna');
+    expect(classify('شركة ناشئة في دبي تجمع 5 ملايين دولار في جولة تمويل', []).signalType).toBe('funding');
+  });
+});
