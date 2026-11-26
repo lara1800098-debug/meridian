@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { ocrPdf } from './ocr';
 
 export const MAX_UPLOAD = 20 * 1024 * 1024;
 const ALLOWED: Record<string, string> = { 'application/pdf': 'pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx', 'text/plain': 'txt' };
@@ -25,7 +26,14 @@ export async function storeAndExtract(file: File) {
     const mammoth = await import('mammoth');
     text = (await mammoth.extractRawText({ buffer: buf })).value;
   } else text = buf.toString('utf8');
-  text = text.replace(/\u0000/g, '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  const clean = (t: string) => t.replace(/\u0000/g, '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  text = clean(text);
+  let ocr = false;
+  // Scanned PDF (little or no text layer) → local OCR in Arabic + English.
+  if (kind === 'pdf' && text.length < 200) {
+    const o = await ocrPdf(stored).catch(() => null);
+    if (o && clean(o.text).length > text.length) { text = clean(o.text); ocr = true; }
+  }
   // Virus scanning: if clamd is configured (CLAMAV_HOST), scan here. Not available by default — documented in README.
-  return { stored, kind, text, scanned: kind === 'pdf' && text.length < 200 };
+  return { stored, kind, text, ocr, scanned: kind === 'pdf' && text.length < 200 };
 }

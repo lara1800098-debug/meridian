@@ -102,3 +102,12 @@ Submission deadline: 15/01/2027 via the e-procurement portal.`;
     expect(['review', 'go']).toContain(g.recommendation);
   });
 });
+
+describe('news sitemap parsing', () => {
+  it('reads news:title and publication date', () => {
+    const xml = '<urlset xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"><url><loc>https://example.com/a</loc><news:news><news:publication><news:name>Demo</news:name></news:publication><news:publication_date>2026-11-25T08:00:00Z</news:publication_date><news:title>Ministry launches AI customer service</news:title></news:news></url></urlset>';
+    const [i] = parseFeed(xml);
+    expect(i.title).toBe('Ministry launches AI customer service');
+    expect(i.outlet).toBe('Demo');
+  });
+});

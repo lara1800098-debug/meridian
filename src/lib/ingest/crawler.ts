@@ -98,6 +98,14 @@ export function parseFeed(xml: string): FeedItem[] {
   const doc = p.parse(xml);
   const txt = (v: any): string => (v == null ? '' : typeof v === 'string' ? v : typeof v === 'number' ? String(v) : v['#text'] ?? '');
   const items: any[] = doc?.rss?.channel?.item ? [].concat(doc.rss.channel.item) : doc?.feed?.entry ? [].concat(doc.feed.entry) : doc?.['rdf:RDF']?.item ? [].concat(doc['rdf:RDF'].item) : [];
+  // Google-News-style news sitemap: <urlset><url><loc/><news:news><news:title/><news:publication_date/></news:news></url></urlset>
+  if (!items.length && doc?.urlset?.url) {
+    return [].concat(doc.urlset.url).map((u: any) => {
+      const n = u['news:news'] ?? {};
+      const d = txt(n['news:publication_date']) || txt(u.lastmod);
+      return { url: txt(u.loc).trim(), title: stripHtml(txt(n['news:title'])).trim(), excerpt: txt(n['news:keywords']), publishedAt: d ? new Date(d) : null, outlet: txt(n['news:publication']?.['news:name']) || null };
+    }).filter((i: FeedItem) => i.url && i.title).sort((a: FeedItem, b: FeedItem) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0));
+  }
   return items.map((it) => {
     const link = typeof it.link === 'string' ? it.link : Array.isArray(it.link) ? (it.link.find((l: any) => l['@rel'] !== 'self')?.['@href'] ?? '') : it.link?.['@href'] ?? txt(it.link);
     let title = stripHtml(txt(it.title));

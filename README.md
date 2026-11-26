@@ -28,7 +28,7 @@ Without `--demo` the seed creates only the first Admin; invite everyone else fro
 
 ### Without Docker (developer setup)
 
-Requires Node 22+, PostgreSQL 16 (with the `pg_trgm` and `pgcrypto` extensions — included in standard packages).
+Requires Node 22+, PostgreSQL 16 (with the `pg_trgm` and `pgcrypto` extensions — included in standard packages). For OCR of scanned tenders also install `poppler-utils`, `tesseract-ocr` and `tesseract-ocr-ara`.
 
 ```bash
 npm ci
@@ -77,7 +77,7 @@ Demo logins (password `Demo-Meridian-2026!`, each with its own TOTP key printed 
 | Organisation dossiers, public-role people, private notes, AR/EN typo-tolerant search | `/orgs`, `/search` |
 | Explainable scoring — Fit/Intent/Timing/Access + reasons (EN/AR), confidence, tiers, calibration | `src/lib/engine/score.ts`, Admin → Scoring / Calibration |
 | Plays — why-now with source citations, offers, proof point, value range, risks, bilingual outreach, accept→deal | `/plays` |
-| Tender Reader — upload RFP (PDF/DOCX), extraction with verbatim citations, Go/No-Go, attach to deal | `/tenders` |
+| Tender Reader — upload RFP (PDF/DOCX, including scanned Arabic via on-server OCR), extraction with verbatim citations, Go/No-Go, attach to deal | `/tenders` |
 | Access Map — relationships, best path in, who-calls-whom | `/access` |
 | Quick Sizer — Erlang C + shrinkage → FTE/seats → value via rate cards | `/sizer` |
 | Pipeline Health — deal register, 60-second quick update, Excel/CSV import wizard & export, history, reality-check engine, next best action | `/deals` |
@@ -138,7 +138,7 @@ tar xzf backups/uploads-YYYYMMDD-HHMM.tgz
 ```bash
 npm test
 ```
-Unit tests (49) cover the scoring, classifier (AR/EN), health rules, forecast maths, Erlang C sizer, robots.txt, de-duplication, work-week brief timing calibration and tender extraction.
+Unit tests (51) cover the scoring, classifier (AR/EN), health rules, forecast maths, Erlang C sizer, robots.txt, de-duplication, work-week brief timing calibration and tender extraction.
 
 ```bash
 npm run e2e

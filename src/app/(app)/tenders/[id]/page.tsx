@@ -21,6 +21,7 @@ export default async function TenderPage({ params }: { params: Promise<{ id: str
   return (
     <Shell ctx={ctx} active="tenders">
       <PageHeader title={tn.filename} subtitle={`${t('signals.method')}: ${tn.method}`} />
+      {tn.extracted.ocr && <p className="mb-4 rounded-ctl bg-info/10 p-3 text-sm text-info">{t('tenders.ocrUsed')}</p>}
       {tn.extracted.scanned && <p className="mb-4 rounded-ctl bg-warn/15 p-3 text-sm text-warn">{t('tenders.scanned')}</p>}
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2" title={t('tenders.extracted')}>

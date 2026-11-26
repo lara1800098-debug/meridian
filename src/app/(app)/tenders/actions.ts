@@ -18,12 +18,12 @@ export async function uploadTender(fd: FormData) {
   const doc = await storeAndExtract(f);
   let fields = extractTender(doc.text);
   let method = 'rules';
-  const [row] = await sql`INSERT INTO tenders (filename, stored_path, text, lang, extracted, uploaded_by) VALUES (${f.name}, ${doc.stored}, ${doc.text.slice(0, 400000)}, ${isArabic(doc.text.slice(0, 3000)) ? 'ar' : 'en'}, ${sql.json({ fields, scanned: doc.scanned } as any)}, ${u.id}) RETURNING id`;
+  const [row] = await sql`INSERT INTO tenders (filename, stored_path, text, lang, extracted, uploaded_by) VALUES (${f.name}, ${doc.stored}, ${doc.text.slice(0, 400000)}, ${isArabic(doc.text.slice(0, 3000)) ? 'ar' : 'en'}, ${sql.json({ fields, scanned: doc.scanned, ocr: doc.ocr } as any)}, ${u.id}) RETURNING id`;
   if (doc.text.length > 200) {
     const ai = await aiTender(row.id, f.name, doc.text);
     if (ai) { for (const [k, v] of Object.entries(ai)) if (v.value && v.quote) fields[k] = v; method = 'ai+rules'; }
   }
-  await sql`UPDATE tenders SET extracted = ${sql.json({ fields, scanned: doc.scanned } as any)}, method = ${method} WHERE id = ${row.id}`;
+  await sql`UPDATE tenders SET extracted = ${sql.json({ fields, scanned: doc.scanned, ocr: doc.ocr } as any)}, method = ${doc.ocr ? method + '+ocr' : method} WHERE id = ${row.id}`;
   await audit(u.id, 'tender.upload', 'tender', row.id, { file: f.name });
   redirect(`/tenders/${row.id}`);
 }

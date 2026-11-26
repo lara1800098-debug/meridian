@@ -37,7 +37,13 @@ Each entry: what, why, and what to revisit.
     - Wamda
 
     Their terms of use have **not** been legally reviewed. A human must tick "terms checked" in Admin → Sources before production use.
-14. **Official UAE sources (WAM, Dubai Media Office, u.ae) are seeded but disabled.** Their feed endpoints returned no items from this cloud IP. Verify from the UAE VM, then enable.
+14. **18 live sources are enabled and verified (26 Nov 2026).**
+    - **8 official Abu Dhabi Media Office category feeds**, English and Arabic: economy, government affairs, health, technology and transport.
+    - Gulf Today, and the Emirates 24|7 news sitemap. News sitemaps are now supported.
+    - The 8 feeds listed in decision 13.
+
+    WAM, Dubai Media Office and u.ae publish no public feed that could be found. They stay seeded as disabled entries until a feed is identified.
+    - **Cross-language duplicates:** the same story in English and Arabic (e.g. ADMO publishes both) merges only when the AI translation step is on. Without a key the two versions stay separate signals.
 
 ## AI
 
@@ -95,7 +101,7 @@ Each entry: what, why, and what to revisit.
 
 ## Known limitations (not done yet)
 
-- OCR for scanned Arabic PDFs is not bundled. Scanned files are detected, and the user is told text could not be read.
+- OCR for scanned PDFs runs locally with Tesseract (Arabic + English, installed in the Docker image; nothing leaves the server). Arabic OCR can misread digits and percentages, e.g. "80%" read as "9680". The UI says so, and every extracted field is shown next to its original text.
 - The map view of plays by country is a ranked country list (no geo map), to avoid a map tile provider (an outbound connection).
 - Docker images were not built in the development container (no Docker engine available). Compose and the Dockerfile are provided, and the app was verified with a native Node + Postgres run.
 - The Concentrix logo and brand kit are placeholders until the official files are supplied. Rate cards and targets are placeholders/demo.

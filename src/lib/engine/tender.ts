@@ -36,7 +36,11 @@ export function extractTender(text: string): Record<string, Cited> {
     let value = pick.slice(0, 260);
     if (k.endsWith('_deadline')) value = DATE.exec(pick)?.[0] ?? value;
     if (k === 'languages') value = [...new Set(hits.join(' ').match(/\b(arabic|english|urdu|hindi|french|tagalog)\b|العربية|الإنجليزية/gi)?.map((x) => x.toLowerCase()) ?? [])].join(', ') || value;
-    if (k === 'channels') value = [...new Set(hits.join(' ').match(/\b(voice|phone|e-?mail|chat|whatsapp|social media|sms)\b/gi)?.map((x) => x.toLowerCase()) ?? [])].join(', ') || value;
+    if (k === 'channels') {
+      const AR: Record<string, string> = { 'الهاتف': 'voice', 'المكالمات': 'voice', 'البريد الإلكتروني': 'email', 'واتساب': 'whatsapp', 'المحادثة': 'chat', 'الرسائل النصية': 'sms', 'وسائل التواصل الاجتماعي': 'social media' };
+      const found = (hits.join(' ').match(/\b(voice|phone|e-?mail|chat|whatsapp|social media|sms)\b|الهاتف|المكالمات|البريد الإلكتروني|واتساب|المحادثة|الرسائل النصية|وسائل التواصل الاجتماعي/gi) ?? []).map((x) => AR[x] ?? x.toLowerCase().replace('phone', 'voice').replace('e-mail', 'email'));
+      value = [...new Set(found)].join(', ') || value;
+    }
     if (k === 'certifications') value = [...new Set(hits.join(' ').match(KW.certifications) ?? [])].join(', ') || value;
     out[k] = { value, quote: pick.slice(0, 400) };
   }

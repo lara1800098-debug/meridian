@@ -2,7 +2,8 @@
 FROM node:22-bookworm-slim AS base
 ENV NEXT_TELEMETRY_DISABLED=1 PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends postgresql-client ca-certificates && rm -rf /var/lib/apt/lists/*
+# poppler-utils + tesseract (Arabic & English) = local OCR for scanned tenders; nothing leaves the server
+RUN apt-get update && apt-get install -y --no-install-recommends postgresql-client ca-certificates poppler-utils tesseract-ocr tesseract-ocr-ara tesseract-ocr-eng && rm -rf /var/lib/apt/lists/*
 
 FROM base AS deps
 COPY package.json package-lock.json ./
