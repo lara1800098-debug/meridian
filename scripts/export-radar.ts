@@ -21,7 +21,7 @@ const plays = await sql`
     (SELECT json_agg(json_build_object('id', left(sn.id::text, 8), 'title', sn.title, 'excerpt', left(sn.excerpt, 500), 'url', sn.url, 'outlet', coalesce(src.name, ''), 'date', coalesce(sn.published_at, sn.fetched_at), 'lang', sn.lang) ORDER BY sn.published_at)
        FROM signal_sources ss JOIN snapshots sn ON sn.id = ss.snapshot_id LEFT JOIN sources src ON src.id = sn.source_id WHERE ss.signal_id = s.id) AS sources
   FROM plays p JOIN signals s ON s.id = p.signal_id LEFT JOIN organisations o ON o.id = p.org_id
-  WHERE NOT s.is_demo ORDER BY p.total DESC`;
+  WHERE NOT s.is_demo AND coalesce(s.published_at, s.first_seen_at) > now() - interval '60 days' ORDER BY p.total DESC`;
 const playsOut = plays.map((p) => ({
   id: short(p.id), headline: p.headline, headline_ar: p.headline_ar, title: p.title, lang: p.lang, type: p.type, track: p.track, country: p.country, sector: p.sector,
   org: p.org, org_ar: p.org_ar, total: p.total, tier: p.tier, confidence: p.confidence, scores: p.scores, why: p.why, risks: p.risks, buyers: p.buyers, offers: p.offers,
@@ -34,7 +34,8 @@ const signals = await sql`
     p.id AS play_id, p.offer_keys,
     (SELECT json_build_object('url', sn.url, 'outlet', coalesce(src.name, ''), 'date', coalesce(sn.published_at, sn.fetched_at)) FROM signal_sources ss JOIN snapshots sn ON sn.id = ss.snapshot_id LEFT JOIN sources src ON src.id = sn.source_id WHERE ss.signal_id = s.id ORDER BY sn.published_at DESC NULLS LAST LIMIT 1) AS src
   FROM signals s LEFT JOIN organisations o ON o.id = s.org_id LEFT JOIN plays p ON p.signal_id = s.id
-  WHERE NOT s.is_demo AND s.track <> 'against'`;
+  WHERE NOT s.is_demo AND s.track <> 'against'
+    AND coalesce(s.published_at, s.first_seen_at) > now() - interval '60 days'`;
 
 type Upd = { title: string; url: string; outlet: string; date: string; type: string; total: number | null; playId: string | null };
 type Logo = { id: string; name: string; sector: string; country: string; international: boolean; competitor: boolean; maxScore: number; tier: string | null; offers: Set<string>; updates: Upd[]; playIds: string[] };
@@ -64,7 +65,7 @@ for (const s of signals) {
 const news = await sql`
   SELECT sn.title, sn.excerpt, sn.url, coalesce(src.name, '') AS outlet, coalesce(sn.published_at, sn.fetched_at) AS date, src.country AS src_country
   FROM snapshots sn LEFT JOIN sources src ON src.id = sn.source_id
-  WHERE NOT sn.is_demo AND NOT EXISTS (SELECT 1 FROM signal_sources ss WHERE ss.snapshot_id = sn.id) AND sn.fetched_at > now() - interval '30 days'`;
+  WHERE NOT sn.is_demo AND NOT EXISTS (SELECT 1 FROM signal_sources ss WHERE ss.snapshot_id = sn.id) AND coalesce(sn.published_at, sn.fetched_at) > now() - interval '30 days'`;
 const comps = (await sql`SELECT name, aliases FROM competitors`).flatMap((c) => [c.name, ...c.aliases]);
 for (const n of news) {
   const subj = headlineSubject(n.title);
@@ -89,7 +90,7 @@ const logosOut = [...logos.values()].map((l) => {
 // ---- market trends mapped to offers we can sell and deliver
 const THEMES = [
   { k: 'gov_ai', en: 'Government AI & digital services', ar: 'الذكاء الاصطناعي والخدمات الحكومية الرقمية', m: (s: any) => s.type === 'gov_cx_programme' || (s.sector === 'government' && ['expansion', 'new_entity', 'leader_appointed'].includes(s.type)), offers: ['ix_hello', 'cx_strategy', 'ix_hero'] },
-  { k: 'cx_ops', en: 'Contact-centre & CX transformation', ar: 'تحويل مراكز الاتصال وتجربة العملاء', m: (s: any) => ['cc_transformation', 'service_ratings', 'complaints', 'tender', 'tender_award'].includes(s.type), offers: ['managed_cc', 'ix_hero', 'cx_health_check'] },
+  { k: 'cx_ops', en: 'Contact-centre & CX transformation', ar: 'تحويل مراكز الاتصال وتجربة العملاء', m: (s: any) => ['cc_transformation', 'service_ratings', 'complaints'].includes(s.type) || (['tender', 'tender_award'].includes(s.type) && /customer|contact|call cent|service|experience|CX|digital|خدمة|مركز اتصال|المتعاملين/i.test(s.title)), offers: ['managed_cc', 'ix_hero', 'cx_health_check'] },
   { k: 'health', en: 'Healthcare consolidation & new capacity', ar: 'اندماجات الرعاية الصحية والسعة الجديدة', m: (s: any) => s.sector === 'healthcare', offers: ['managed_cc', 'cx_health_check', 'ix_hello'] },
   { k: 'bank_mna', en: 'Banking & financial M&A', ar: 'الاستحواذ والاندماج في القطاع المالي', m: (s: any) => s.type === 'mna' && ['bfsi', 'fintech'].includes(s.sector), offers: ['managed_cc', 'cx_strategy', 'collections'] },
   { k: 'funding', en: 'Startup & fintech funding', ar: 'تمويل الشركات الناشئة والتقنية المالية', m: (s: any) => s.type === 'funding', offers: ['b2b_b2c_sales', 'managed_cc', 'collections', 'trust_safety'] },

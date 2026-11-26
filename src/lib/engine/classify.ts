@@ -196,7 +196,7 @@ export function groundCheck(source: string, values: (string | null | undefined)[
 export const isArabic = (s: string) => (s.match(/[؀-ۿ]/g)?.length ?? 0) > s.length * 0.25;
 
 /* ---------------- Headline subject (the "logo") ---------------- */
-const PLACES = /^(UAE|U\.A\.E|Dubai|Abu Dhabi|Sharjah|Ajman|Saudi Arabia|Saudi|KSA|Riyadh|Jeddah|Egypt|Cairo|Jordan|Amman|Qatar|Doha|Kuwait|Bahrain|Oman|Muscat|Türkiye|Turkey|Istanbul|GCC|Gulf|Middle East|MENA|US|USA|UK|China|India|Europe|Africa|Sudan|Iraq|Iran|Syria|Lebanon|Israel|Gaza)$/i;
+const PLACES = /^(France|Germany|Russia|Brazil|Italy|Spain|Canada|Australia|Japan|Korea|Singapore|Pakistan|Bangladesh|Philippines|Indonesia|Malaysia|Greece|Switzerland|Netherlands|Belgium|Sweden|Norway|Denmark|Ukraine|Yemen|Libya|Tunisia|Morocco|Algeria|UAE|U\.A\.E|Dubai|Abu Dhabi|Sharjah|Ajman|Saudi Arabia|Saudi|KSA|Riyadh|Jeddah|Egypt|Cairo|Jordan|Amman|Qatar|Doha|Kuwait|Bahrain|Oman|Muscat|Türkiye|Turkey|Istanbul|GCC|Gulf|Middle East|MENA|US|USA|UK|China|India|Europe|Africa|Sudan|Iraq|Iran|Syria|Lebanon|Israel|Gaza)$/i;
 const DESCRIPTORS = /^(Chinese|Indian|American|British|French|German|Japanese|Korean|Singaporean|Swiss|Dutch|Italian|Spanish|Canadian|Australian|European|Firm|Company|Startup|insurtech|fintech|proptech|healthtech|edtech|startup|start-up|company|firm|platform|operator|giant|provider|lender|bank|group|developer|retailer|carrier|airline|app|brand|unicorn|AI|tech|digital|leading|new|global|regional|local|state-owned|listed|Emirati|Saudi|Egyptian|Jordanian|Qatari|Kuwaiti|Bahraini|Omani|Turkish|Dubai-based|Abu Dhabi-based|UAE-based|Riyadh-based|Cairo-based|based)$/i;
 const HONORIFIC = /^(Sheikh|Shaikh|HH|H\.H\.|President|Crown|Prince|Mr|Mrs|Ms|Dr|His|Her|Minister)\b/;
 const GENERIC = /^(Days?|Two|Three|Four|Five|Hot|New|Top|How|Why|What|When|Watch|Breaking|Exclusive|Opinion|Analysis|The|A|An|This|These|Inside|Report|Update|Reprieve|Relief|Boost|Record|Strong|Slow|Push|Plan|Deal|Experts?|Residents?|Officials?|Investors?|Markets?|Stocks?|Oil|Gold|Prices?|Here|More|Most|All|Several|Many)$/i;
@@ -240,6 +240,7 @@ export function headlineSubject(title: string): string | null {
   if (out.some((w) => /-(led|based|backed|owned)$/i.test(w))) return null;
   const s = out.join(' ').replace(/['’]s$/, '').trim();
   if (!s || s.length < 2 || s.length > 60 || PLACES.test(s) || GENERIC.test(out[0] ?? '')) return null;
+  if (/^(Dhs?|AED|SAR|USD|EGP|US\$|\$|€|£)\s?\d/i.test(s) || /^\d[\d.,]*\s?(bn|m|k|million|billion|%)$/i.test(s)) return null; // money / amounts are not logos (bare names like "009" are kept)
   if (out.length > 6) return null;
   return s;
 }

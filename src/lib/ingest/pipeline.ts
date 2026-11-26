@@ -12,6 +12,8 @@ import { aiClassify, aiTranslate } from '../ai/tasks';
 import { aiAvailable } from '../ai/client';
 import { COUNTRIES, SIGNAL_TYPES, type SignalType, type Sector } from '../taxonomy';
 
+export const MAX_AGE_DAYS = 60;
+
 export type RawItem = {
   sourceId: string | null; url: string; title: string; excerpt: string; body?: string | null; publishedAt: Date | null;
   outlet?: string | null; origin: 'crawl' | 'manual_url' | 'upload' | 'demo'; addedBy?: string | null; storeBody?: boolean; isDemo?: boolean;
@@ -24,6 +26,8 @@ export async function ingestItem(item: RawItem): Promise<{ status: 'duplicate_sn
   const text = `${item.title}\n${item.excerpt}\n${item.body ?? ''}`.trim();
   const lang = isArabic(`${item.title} ${item.excerpt}`) ? 'ar' : 'en';
   const publishedAt = item.publishedAt && !isNaN(item.publishedAt.getTime()) && item.publishedAt <= new Date() ? item.publishedAt : null;
+  // Feeds sometimes resurface archive pieces (seen: 2013 articles in a 2026 feed). Old news is not a buying signal.
+  if (publishedAt && item.origin === 'crawl' && Date.now() - publishedAt.getTime() > MAX_AGE_DAYS * 86400000) return { status: 'not_signal' };
 
   const [snap] = await sql`
     INSERT INTO snapshots (source_id, url, title, excerpt, body, lang, content_hash, published_at, origin, added_by, is_demo)

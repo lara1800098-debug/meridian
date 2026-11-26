@@ -185,3 +185,11 @@ describe('international badge', () => {
     ['Abu Dhabi Civil Defence Authority signs MoU with French firm', 'Abu Dhabi Civil Defence Authority', false],
   ])('%s', (t, subj, want) => expect(isInternational(t, subj)).toBe(want));
 });
+
+describe('fixes from the first automatic run', () => {
+  it.each([
+    ["France offers proposals for Saudi Arabia's nuclear energy programme", null],
+    ['Dh15 billion fund launched for SMEs', null],
+    ['Nakheel awards Dh1.4bn contract to build 176 villas', 'Nakheel'],
+  ])('%s', (t, want) => expect(headlineSubject(t)).toBe(want));
+});
