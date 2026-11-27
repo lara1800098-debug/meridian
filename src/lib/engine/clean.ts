@@ -3,7 +3,7 @@
  * and the news is a buying signal we can sell into. Everything else stays visible as market news (Trends), never as a lead.
  */
 export type BuyerInput = { org: string | null | undefined; title: string; type: string; offers?: string[] | null };
-export type BuyerVerdict = { clean: boolean; reason: null | 'no_org' | 'generic_org' | 'investor' | 'too_small' | 'no_offer' | 'advertorial' | 'not_cx' };
+export type BuyerVerdict = { clean: boolean; reason: null | 'no_org' | 'generic_org' | 'investor' | 'too_small' | 'no_offer' | 'advertorial' | 'not_cx' | 'not_business' };
 
 // Umbrella names — a government or a place is market context, not a buyer we can contact.
 const GENERIC_ORG = /^(?:the\s+)?(?:(?:government of\s+)?(?:abu dhabi|dubai|sharjah|ajman|ras al khaimah|fujairah|umm al quwain|uae|united arab emirates|the uae|emirates|saudi arabia|saudi|ksa|kingdom of saudi arabia|egypt|jordan|gcc|mena|middle east|gulf)(?:\s+government)?|government|federal government|ministry|authority|council|cabinet)$/i;
@@ -14,6 +14,9 @@ const FUND_NEWS = /\b(?:closes?|closing|launch(?:es|ed)?|raises?)\b[^.]{0,40}\bf
 const ADVERTORIAL = /\b(?:a hub for|offers? seamless|why (?:an?|the) .+ is a smart|buyer'?s guide|guide to|tips for|things to (?:do|know)|best .+ to buy|how to|deals? of the (?:day|week)|review:)\b/i;
 const NON_CX_CONTRACT = /\b(?:construct|build(?:ing)?|villas?|towers?|roads?|bridges?|infrastructure|civil works|EPC|pipeline|drilling|dredging|substation|metro line)\b/i;
 const CX_WORDS = /customer|contact cent|call cent|service|experience|\bCX\b|digital|app|platform|support|خدمة|المتعاملين|مركز اتصال/i;
+// Not a business story: conflict, crime, courts, accidents, protocol visits. Never a sales lead, whoever is named.
+const NOT_BUYER_ORG = /\b(?:houthis?|hamas|hezbollah|isis|daesh|taliban|al-?qaeda|militia|rebels?|court|courts|prosecution|public prosecutor|police|army|armed forces)\b|الحوثي|حماس|حزب الله|محكمة|النيابة|الشرطة/i;
+const NOT_BUSINESS = /\b(?:attacks?|attacked|kill(?:s|ed|ing)?|dies|died|dead|death|injur(?:ed|ies)|missile|drone strike|explosion|court (?:orders|rules|ruling|sentences)|sentenced|jailed|arrested|convicted|lawsuit|sues|fraud|scam|smuggl\w*|crash|fire breaks|earthquake|flood|weather|rain|condolences?|mourns|tours? .{0,40}pavilion|visits? .{0,40}(?:pavilion|stand|booth))\b|هجوم|مقتل|وفاة|حادث|محكمة|حكم بال|القبض|يعزي|تعزية/i;
 const SMALL_ROUND = /\b(?:pre-?seed|seed|angel|pre-series a)\b/i;
 
 /** Parse the largest money amount in a headline, in USD (USD, AED/Dh, SAR, EGP, JOD). Null when none is stated. */
@@ -34,6 +37,7 @@ export function buyerCheck(p: BuyerInput): BuyerVerdict {
   if (!org || org.length < 3 || /^\d+$/.test(org)) return { clean: false, reason: 'no_org' };
   if (GENERIC_ORG.test(org) || GENERIC_AR.test(org)) return { clean: false, reason: 'generic_org' };
   if (INVESTOR_ORG.test(org) || (p.type === 'funding' && FUND_NEWS.test(p.title))) return { clean: false, reason: 'investor' };
+  if (NOT_BUYER_ORG.test(org) || NOT_BUSINESS.test(p.title)) return { clean: false, reason: 'not_business' };
   if (ADVERTORIAL.test(p.title)) return { clean: false, reason: 'advertorial' };
   if (!(p.offers ?? []).length) return { clean: false, reason: 'no_offer' };
   if (['tender_award', 'tender'].includes(p.type) && NON_CX_CONTRACT.test(p.title) && !CX_WORDS.test(p.title)) return { clean: false, reason: 'not_cx' };

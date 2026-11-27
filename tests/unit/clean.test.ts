@@ -24,6 +24,11 @@ describe('buyerCheck — clean sales logos only', () => {
     expect(buyerCheck({ org: 'Nakheel', title: 'Nakheel awards Dh1.4bn contract to build 176 villas', type: 'tender_award', offers: [] }).reason).toBe('no_offer');
     expect(buyerCheck({ org: 'Nakheel', title: 'Nakheel awards Dh1.4bn contract to build 176 villas', type: 'tender_award', offers: ok }).reason).toBe('not_cx');
   });
+  it('rejects conflict, court and protocol-visit stories', () => {
+    expect(buyerCheck({ org: 'Houthi', title: "Houthi attack on Saudi Arabia's Jazan refinery kills Nepali worker", type: 'expansion', offers: ok }).reason).toBe('not_business');
+    expect(buyerCheck({ org: 'Dubai Court', title: 'Dubai Court orders contracting company to return Dhs2.18m to insurance firm', type: 'complaints', offers: ok }).reason).toBe('not_business');
+    expect(buyerCheck({ org: 'Interior Ministry', title: 'Saudi officials tour Interior Ministry pavilion at SAIF', type: 'gov_cx_programme', offers: ok }).reason).toBe('not_business');
+  });
   it('keeps named buyers with a sellable signal', () => {
     expect(buyerCheck({ org: 'Dubai Islamic Bank', title: 'Dubai Islamic Bank to acquire Emirates Islamic', type: 'mna', offers: ['cx_strategy'] }).clean).toBe(true);
     expect(buyerCheck({ org: 'Ministry of Tourism', title: 'Ministry of Tourism makes 5 digital services available', type: 'gov_cx_programme', offers: ok }).clean).toBe(true);
