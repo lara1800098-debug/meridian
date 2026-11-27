@@ -8,6 +8,7 @@ import path from 'node:path';
 import { sql } from '../src/db';
 import { classify, headlineSubject, isCompanyNews, isInternational } from '../src/lib/engine/classify';
 import { COUNTRIES, DELIVERY_COUNTRIES } from '../src/lib/taxonomy';
+import { buyerCheck, AR_ALIASES } from '../src/lib/engine/clean';
 
 const outDir = process.argv.includes('--out') ? process.argv[process.argv.indexOf('--out') + 1] : 'radar-app';
 mkdirSync(outDir, { recursive: true });
@@ -24,12 +25,6 @@ const plays = await sql`
     s.published_at, s.first_seen_at
   FROM plays p JOIN signals s ON s.id = p.signal_id LEFT JOIN organisations o ON o.id = p.org_id
   WHERE NOT s.is_demo AND coalesce(s.published_at, s.first_seen_at) > now() - interval '60 days' ORDER BY p.total DESC`;
-const playsOut = plays.map((p) => ({
-  id: short(p.id), headline: p.headline, headline_ar: p.headline_ar, title: p.title, lang: p.lang, type: p.type, track: p.track, country: p.country, sector: p.sector,
-  org: p.org, org_ar: p.org_ar, total: p.total, tier: p.tier, confidence: p.confidence, scores: p.scores, why: p.why, risks: p.risks, buyers: p.buyers, offers: p.offers,
-  proof: p.proof_point ? JSON.parse(p.proof_point) : null, low: Math.round(Number(p.value_low_usd)), high: Math.round(Number(p.value_high_usd)), band: p.band, outreach: p.outreach, sources: p.sources ?? [], people: (p.people ?? []).slice(0, 6), seen: p.published_at ?? p.first_seen_at,
-}));
-
 // ---- signals (buying signals) with their logo
 const signals = await sql`
   SELECT s.id, s.title, s.signal_type AS type, s.track, s.country, s.sector, s.total, s.tier, s.extracted, s.first_seen_at, o.id AS org_id, o.name_en, o.name_ar, o.is_competitor,
@@ -44,8 +39,37 @@ type Logo = { id: string; name: string; sector: string; country: string; interna
 const logos = new Map<string, Logo>();
 const aliasRows = await sql`SELECT name_en, aliases FROM organisations WHERE cardinality(aliases) > 0`;
 const ALIAS = new Map<string, string>(aliasRows.flatMap((o) => o.aliases.map((a: string) => [a.toLowerCase(), o.name_en] as [string, string])));
-const canon = (n: string) => ALIAS.get(n.toLowerCase()) ?? n;
+for (const [ar, en] of Object.entries(AR_ALIASES)) ALIAS.set(ar.toLowerCase(), en);
+const canon = (n: string) => ALIAS.get(n.toLowerCase().trim()) ?? n;
 const key = (n: string) => canon(n).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+const allPlays = plays.map((p) => ({
+  id: short(p.id), headline: p.headline, headline_ar: p.headline_ar, title: p.title, lang: p.lang, type: p.type, track: p.track, country: p.country, sector: p.sector,
+  org: p.org ? canon(p.org) : p.org, org_ar: p.org_ar, total: p.total, tier: p.tier, confidence: p.confidence, scores: p.scores, why: p.why, risks: p.risks, buyers: p.buyers, offers: p.offers,
+  proof: p.proof_point ? JSON.parse(p.proof_point) : null, low: Math.round(Number(p.value_low_usd)), high: Math.round(Number(p.value_high_usd)), band: p.band, outreach: p.outreach, sources: p.sources ?? [], people: (p.people ?? []).slice(0, 6), seen: p.published_at ?? p.first_seen_at,
+}));
+
+// ---- clean buyers only: a named organisation we can sell to, one opportunity per logo (other signals become 'more' updates)
+const screened: Record<string, number> = {};
+const byOrg = new Map<string, any>();
+for (const p of allPlays) {
+  const v = buyerCheck({ org: p.org, title: p.title, type: p.type, offers: p.offers });
+  if (!v.clean) { screened[v.reason!] = (screened[v.reason!] ?? 0) + 1; continue; }
+  const k = key(p.org!);
+  const cur = byOrg.get(k);
+  if (!cur) { byOrg.set(k, { ...p, related: [] }); continue; }
+  screened.merged = (screened.merged ?? 0) + 1;
+  const [keepP, other] = p.total > cur.total ? [{ ...p, related: cur.related }, cur] : [cur, p];
+  keepP.related.push({ id: other.id, title: other.title, type: other.type, total: other.total, url: other.sources?.[0]?.url ?? null, date: other.seen });
+  const urls = new Set(keepP.sources.map((x: any) => x.url));
+  for (const src of other.sources ?? []) if (!urls.has(src.url)) keepP.sources.push(src);
+  const names = new Set(keepP.people.map((x: any) => x.name.toLowerCase()));
+  for (const pe of other.people ?? []) if (!names.has(pe.name.toLowerCase())) keepP.people.push(pe);
+  keepP.offers = [...new Set([...(keepP.offers ?? []), ...(other.offers ?? [])])];
+  byOrg.set(k, keepP);
+}
+const playsOut = [...byOrg.values()].sort((a, b) => b.total - a.total);
+const keptId = new Map<string, string>(playsOut.flatMap((p) => [[p.id, p.id], ...p.related.map((r: any) => [r.id, p.id])] as [string, string][]));
+
 const add = (name: string, base: Omit<Logo, 'offers' | 'updates' | 'playIds' | 'maxScore' | 'tier' | 'name' | 'id'>, u: Upd, score: number | null, tier: string | null, offers: string[]) => {
   const k = key(name);
   const l = logos.get(k) ?? { id: Buffer.from(k).toString('base64url').slice(0, 16), name: canon(name), ...base, maxScore: 0, tier: null, offers: new Set<string>(), updates: [], playIds: [] };
@@ -77,9 +101,10 @@ for (const n of news) {
   add(subj!, { sector: ex.sector, country: ex.country, international: isInternational(n.title, subj), competitor: false },
     { title: n.title, url: n.url, outlet: n.outlet, date: n.date, type: 'news', total: null, playId: null }, null, null, []);
 }
-const logosOut = [...logos.values()].map((l) => {
+const logosOut = [...logos.values()].filter((l) => { const v = buyerCheck({ org: l.name, title: '', type: 'news', offers: ['x'] }); return v.clean; }).map((l) => {
+  l.playIds = [...new Set(l.playIds.map((id) => keptId.get(id)).filter(Boolean) as string[])];
   const delivery = DELIVERY_COUNTRIES.includes(l.country);
-  const signal = l.maxScore >= 55;
+  const signal = l.maxScore >= 55 && l.playIds.length > 0;
   const sellable = l.offers.size > 0;
   return {
     id: l.id, name: l.name, sector: l.sector, country: l.country, international: l.international, maxScore: l.maxScore, tier: l.tier,
@@ -114,7 +139,7 @@ const trends = THEMES.map((th) => {
 
 const [{ articles }] = await sql`SELECT count(*)::int AS articles FROM snapshots WHERE NOT is_demo`;
 const [{ sources }] = await sql`SELECT count(*)::int AS sources FROM sources WHERE enabled AND last_success_at IS NOT NULL`;
-const meta = { articles, sources, date: new Date().toISOString(), plays: playsOut.length, logos: logosOut.length, qualifying: logosOut.filter((l) => l.qualifies).length };
+const meta = { articles, sources, date: new Date().toISOString(), plays: playsOut.length, screened, logos: logosOut.length, qualifying: logosOut.filter((l) => l.qualifies).length };
 const w = (f: string, d: unknown) => writeFileSync(path.join(outDir, f), JSON.stringify(d));
 w('plays.json', playsOut); w('logos.json', logosOut); w('trends.json', trends); w('meta.json', meta);
 console.log(`✔ exported to ${outDir}: ${playsOut.length} plays, ${logosOut.length} logos (${meta.qualifying} qualify), ${trends.length} trends, ${articles} articles from ${sources} sources`);
